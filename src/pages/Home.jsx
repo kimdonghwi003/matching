@@ -1,43 +1,73 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Calendar, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 
-const matches = [
-  { id: 1, title: '오늘 저녁 풋살 한 게임 하실 분!', sport: 'futsal', date: '오늘 19:00', location: '충북대 대운동장', skill: '초중급', author: '축구왕' },
-  { id: 2, title: '농구 3:3 상대팀 모십니다', sport: 'basketball', date: '내일 15:00', location: '야외 농구장', skill: '중급', author: '바스켓보이' },
-  { id: 3, title: '가볍게 테니스 랠리 하실분', sport: 'tennis', date: '이번주 토 10:00', location: '교내 테니스장', skill: '입문', author: '테린이' },
-  { id: 4, title: '롤 5인팟 구해요 (골드~플레)', sport: 'esports', date: '오늘 21:00', location: '온라인 (디스코드)', skill: '고급', author: '미드장인' },
-];
+const SPORT_LABEL = {
+  futsal:     '⚽ 풋살',
+  basketball: '🏀 농구',
+  tennis:     '🎾 테니스',
+  esports:    '🎮 e-sports',
+};
+
+const FILTER_OPTIONS = ['All', 'futsal', 'basketball', 'tennis', 'esports'];
+const FILTER_LABEL   = { All: '전체', futsal: '⚽ 풋살', basketball: '🏀 농구', tennis: '🎾 테니스', esports: '🎮 e-sports' };
 
 export default function Home() {
-  const [filter, setFilter] = useState('All');
-  const [applied, setApplied] = useState(new Set());
-  const [applyingId, setApplyingId] = useState(null);
+  const [filter, setFilter]           = useState('All');
+  const [matches, setMatches]         = useState([]);
+  const [applied, setApplied]         = useState(new Set());
+  const [applyingId, setApplyingId]   = useState(null);
+  const [loadingMatches, setLoadingMatches] = useState(true);
 
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const filteredMatches = filter === 'All' ? matches : matches.filter(m => m.sport === filter.toLowerCase());
+  useEffect(() => { fetchMatches(); }, []);
+
+  useEffect(() => {
+    if (user) fetchApplied();
+    else setApplied(new Set());
+  }, [user]);
+
+  const fetchMatches = async () => {
+    setLoadingMatches(true);
+    const { data, error } = await supabase
+      .from('matches')
+      .select('*, users(nickname)')
+      .order('created_at', { ascending: false });
+
+    if (!error && data) setMatches(data);
+    setLoadingMatches(false);
+  };
+
+  const fetchApplied = async () => {
+    const { data } = await supabase
+      .from('match_applications')
+      .select('match_id')
+      .eq('applicant_id', user.id);
+    if (data) setApplied(new Set(data.map(a => a.match_id)));
+  };
 
   const handleApply = async (match) => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
+    if (!user) { navigate('/login'); return; }
     if (applied.has(match.id)) return;
 
     setApplyingId(match.id);
-    await supabase.from('match_applications').insert({
-      match_id: match.id.toString(),
+    const { error } = await supabase.from('match_applications').insert({
+      match_id:     match.id,
       applicant_id: user.id,
-      message: '',
-    }).then(() => {});
+      message:      '',
+    });
 
-    setApplied(prev => new Set([...prev, match.id]));
+    if (!error) setApplied(prev => new Set([...prev, match.id]));
     setApplyingId(null);
   };
+
+  const filteredMatches = filter === 'All'
+    ? matches
+    : matches.filter(m => m.sport_type === filter);
 
   return (
     <div>
@@ -47,56 +77,89 @@ export default function Home() {
       </div>
 
       <div className="flex gap-2 mb-3" style={{ overflowX: 'auto', paddingBottom: '8px' }}>
-        {['All', 'Futsal', 'Basketball', 'Tennis', 'Esports'].map(f => (
+        {FILTER_OPTIONS.map(f => (
           <button
             key={f}
             className={`btn ${filter === f ? 'btn-primary' : 'btn-secondary'}`}
             style={{ padding: '8px 16px', fontSize: '0.9rem', whiteSpace: 'nowrap' }}
             onClick={() => setFilter(f)}
           >
-            {f === 'All' ? '전체' : f === 'Futsal' ? '⚽ 풋살' : f === 'Basketball' ? '🏀 농구' : f === 'Tennis' ? '🎾 테니스' : '🎮 e-sports'}
+            {FILTER_LABEL[f]}
           </button>
         ))}
       </div>
 
-      <div className="flex-col gap-3">
-        {filteredMatches.map(match => {
-          const isApplied = applied.has(match.id);
-          const isApplying = applyingId === match.id;
-          return (
-            <div key={match.id} className="card">
-              <div className="flex justify-between items-center mb-1">
-                <span className={`tag tag-${match.sport}`}>{match.sport.toUpperCase()}</span>
-                <span className="text-muted" style={{ fontSize: '0.85rem' }}>{match.author}</span>
-              </div>
-              <h3 className="mb-2" style={{ fontSize: '1.2rem', marginTop: '8px' }}>{match.title}</h3>
+      {loadingMatches ? (
+        <div className="text-center text-muted mt-2">불러오는 중...</div>
+      ) : (
+        <div className="flex-col gap-3">
+          {filteredMatches.map(match => {
+            const isApplied  = applied.has(match.id);
+            const isApplying = applyingId === match.id;
+            const isAuthor   = user && user.id === match.author_id;
+            const authorNick = match.users?.nickname || '알 수 없음';
 
-              <div className="flex-col gap-2 mb-3" style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                <div className="flex items-center gap-2"><Calendar size={16} /> {match.date}</div>
-                <div className="flex items-center gap-2"><MapPin size={16} /> {match.location}</div>
-                <div className="flex items-center gap-2"><Users size={16} /> 실력: {match.skill}</div>
-              </div>
+            return (
+              <div key={match.id} className="card">
+                <div className="flex justify-between items-center mb-1">
+                  <span className={`tag tag-${match.sport_type}`}>
+                    {SPORT_LABEL[match.sport_type] || match.sport_type}
+                  </span>
+                  <span className="text-muted" style={{ fontSize: '0.85rem' }}>{authorNick}</span>
+                </div>
+                <h3 className="mb-2" style={{ fontSize: '1.2rem', marginTop: '8px' }}>{match.title}</h3>
 
-              <button
-                className="btn btn-primary"
-                style={{
-                  width: '100%',
-                  backgroundColor: isApplied ? 'var(--success)' : undefined,
-                  color: isApplied ? '#2d6a4f' : undefined,
-                  cursor: isApplied ? 'default' : 'pointer',
-                }}
-                onClick={() => handleApply(match)}
-                disabled={isApplied || isApplying}
-              >
-                {isApplying ? '신청 중...' : isApplied ? '✓ 신청 완료' : '신청하기'}
-              </button>
+                <div className="flex-col gap-2 mb-3" style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                  {match.match_date && (
+                    <div className="flex items-center gap-2">
+                      <Calendar size={16} />
+                      {new Date(match.match_date).toLocaleString('ko-KR')}
+                    </div>
+                  )}
+                  {match.location && (
+                    <div className="flex items-center gap-2"><MapPin size={16} /> {match.location}</div>
+                  )}
+                  {match.skill_level_required && (
+                    <div className="flex items-center gap-2"><Users size={16} /> 실력: {match.skill_level_required}</div>
+                  )}
+                </div>
+
+                {isAuthor ? (
+                  <button
+                    className="btn btn-secondary"
+                    style={{ width: '100%', cursor: 'default', opacity: 0.7 }}
+                    disabled
+                  >
+                    내가 개설한 매칭
+                  </button>
+                ) : (
+                  <button
+                    className="btn btn-primary"
+                    style={{
+                      width: '100%',
+                      backgroundColor: isApplied ? 'var(--success)' : undefined,
+                      color: isApplied ? '#2d6a4f' : undefined,
+                      cursor: isApplied ? 'default' : 'pointer',
+                    }}
+                    onClick={() => handleApply(match)}
+                    disabled={isApplied || isApplying}
+                  >
+                    {isApplying ? '신청 중...' : isApplied ? '✓ 신청 완료' : '신청하기'}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+
+          {filteredMatches.length === 0 && (
+            <div className="text-center text-muted mt-2">
+              {matches.length === 0
+                ? '아직 등록된 매칭이 없습니다. 첫 매칭을 개설해보세요! 🎉'
+                : '해당 종목의 매칭 글이 없습니다. 😢'}
             </div>
-          );
-        })}
-        {filteredMatches.length === 0 && (
-          <div className="text-center text-muted mt-2">해당 종목의 매칭 글이 없습니다. 😢</div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

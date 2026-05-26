@@ -23,8 +23,12 @@ export default function Login() {
     const { error: err } = await signIn(loginForm.email, loginForm.password);
     setLoading(false);
     if (err) {
-      if (err.message.includes('Invalid login credentials')) setError('이메일 또는 비밀번호가 올바르지 않습니다.');
-      else setError(err.message);
+      if (err.message.includes('Invalid login credentials') || err.message.includes('invalid_credentials'))
+        setError('이메일 또는 비밀번호가 올바르지 않습니다.');
+      else if (err.message.includes('Email not confirmed') || err.message.includes('email_not_confirmed'))
+        setError('이메일 인증이 완료되지 않았습니다. Supabase SQL에서 supabase_rls_setup.sql을 실행해주세요.');
+      else
+        setError(err.message);
       return;
     }
     navigate('/');
@@ -42,18 +46,26 @@ export default function Login() {
       return;
     }
     setLoading(true);
-    const { error: err } = await signUp(signupForm.email, signupForm.password, {
+    const result = await signUp(signupForm.email, signupForm.password, {
       studentId: signupForm.studentId,
       name: signupForm.name,
       nickname: signupForm.nickname,
     });
     setLoading(false);
-    if (err) {
-      if (err.message.includes('already registered')) setError('이미 가입된 이메일입니다.');
-      else setError(err.message);
+    if (result.error) {
+      if (result.error.message.includes('already registered') || result.error.message.includes('already been registered'))
+        setError('이미 가입된 이메일입니다.');
+      else if (result.error.message.includes('duplicate') || result.error.message.includes('unique'))
+        setError('이미 사용 중인 닉네임이거나 학번입니다.');
+      else
+        setError(result.error.message);
       return;
     }
-    setSuccessMsg('회원가입이 완료되었습니다! 이메일을 확인하여 인증 후 로그인해주세요.');
+    if (result.autoLoggedIn) {
+      navigate('/');
+      return;
+    }
+    setSuccessMsg('회원가입이 완료되었습니다! 로그인 탭에서 로그인해주세요.');
   };
 
   return (
