@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, supabaseAdmin } from '../lib/supabase';
 
 const AuthContext = createContext(null);
 
@@ -24,35 +24,54 @@ export function AuthProvider({ children }) {
     supabase.auth.signInWithPassword({ email, password });
 
   const signUp = async (email, password, profile) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { nickname: profile.nickname, name: profile.name, student_id: profile.studentId } },
-    });
-    if (error) return { data, error };
+    let userId = null;
 
-    // 트리거가 public.users를 자동 생성하지만 클라이언트에서도 시도 (이중 보장)
-    if (data.user) {
-      await supabase.from('users').insert({
-        id: data.user.id,
-        student_id: profile.studentId,
-        name: profile.name,
-        nickname: profile.nickname,
-      }).then(() => {});
+    if (supabaseAdmin) {
+      // Admin API: 이메일 발송 없이 즉시 인증된 유저 생성
+      const { data, error } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          nickname:   profile.nickname,
+          name:       profile.name,
+          student_id: profile.studentId,
+        },
+      });
+      if (error) return { data, error };
+      userId = data.user?.id;
+
+      // public.users 저장 (RLS 우회)
+      if (userId) {
+        await supabaseAdmin.from('users').insert({
+          id:         userId,
+          student_id: profile.studentId,
+          name:       profile.name,
+          nickname:   profile.nickname,
+        }).then(() => {});
+      }
+    } else {
+      // Admin 키 없을 때 fallback (이메일 인증 필요)
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { nickname: profile.nickname, name: profile.name, student_id: profile.studentId } },
+      });
+      if (error) return { data, error };
+      userId = data.user?.id;
+      if (userId) {
+        await supabase.from('users').insert({
+          id: userId, student_id: profile.studentId, name: profile.name, nickname: profile.nickname,
+        }).then(() => {});
+      }
+      if (data.session) return { data, error: null, autoLoggedIn: true };
+      return { data, error: null };
     }
 
-    // 이메일 인증 비활성화 상태: signUp이 세션을 즉시 반환 → 바로 로그인
-    if (data.session) {
-      return { data, error: null, autoLoggedIn: true };
-    }
-
-    // 이메일 인증 활성화 상태: signIn 재시도
+    // 즉시 로그인
     const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
-    if (!signInErr && signInData.session) {
-      return { data: signInData, error: null, autoLoggedIn: true };
-    }
-
-    return { data, error: null };
+    if (signInErr) return { data: null, error: signInErr };
+    return { data: signInData, error: null, autoLoggedIn: true };
   };
 
   const signOut = () => supabase.auth.signOut();

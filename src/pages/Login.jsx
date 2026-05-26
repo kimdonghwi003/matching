@@ -59,9 +59,9 @@ export default function Login() {
       else if (msg.includes('duplicate') || msg.includes('unique'))
         setError('이미 사용 중인 닉네임이거나 학번입니다.');
       else if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit'))
-        setError('이메일 발송 한도를 초과했습니다. Supabase 대시보드 → Authentication → Providers → Email → "Confirm email" 을 OFF로 끄면 해결됩니다.');
-      else if (msg.includes('sending') || msg.includes('email'))
-        setError('이메일 발송 오류입니다. Supabase에서 이메일 인증을 비활성화해주세요.');
+        setError('잠시 후 다시 시도해주세요.');
+      else if (msg.includes('User already registered'))
+        setError('이미 가입된 이메일입니다.');
       else
         setError(msg);
       return;
