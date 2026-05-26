@@ -31,7 +31,7 @@ export function AuthProvider({ children }) {
     });
     if (error) return { data, error };
 
-    // 트리거가 public.users를 자동 생성하지만, 클라이언트에서도 시도 (이중 보장)
+    // 트리거가 public.users를 자동 생성하지만 클라이언트에서도 시도 (이중 보장)
     if (data.user) {
       await supabase.from('users').insert({
         id: data.user.id,
@@ -41,12 +41,15 @@ export function AuthProvider({ children }) {
       }).then(() => {});
     }
 
-    // 회원가입 직후 자동 로그인 시도 (이메일 인증이 비활성화된 경우 즉시 로그인)
-    if (data.user && !data.session) {
-      const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
-      if (!signInErr && signInData.session) {
-        return { data: signInData, error: null, autoLoggedIn: true };
-      }
+    // 이메일 인증 비활성화 상태: signUp이 세션을 즉시 반환 → 바로 로그인
+    if (data.session) {
+      return { data, error: null, autoLoggedIn: true };
+    }
+
+    // 이메일 인증 활성화 상태: signIn 재시도
+    const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+    if (!signInErr && signInData.session) {
+      return { data: signInData, error: null, autoLoggedIn: true };
     }
 
     return { data, error: null };

@@ -53,19 +53,24 @@ export default function Login() {
     });
     setLoading(false);
     if (result.error) {
-      if (result.error.message.includes('already registered') || result.error.message.includes('already been registered'))
+      const msg = result.error.message || '';
+      if (msg.includes('already registered') || msg.includes('already been registered'))
         setError('이미 가입된 이메일입니다.');
-      else if (result.error.message.includes('duplicate') || result.error.message.includes('unique'))
+      else if (msg.includes('duplicate') || msg.includes('unique'))
         setError('이미 사용 중인 닉네임이거나 학번입니다.');
+      else if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit'))
+        setError('이메일 발송 한도를 초과했습니다. Supabase 대시보드 → Authentication → Providers → Email → "Confirm email" 을 OFF로 끄면 해결됩니다.');
+      else if (msg.includes('sending') || msg.includes('email'))
+        setError('이메일 발송 오류입니다. Supabase에서 이메일 인증을 비활성화해주세요.');
       else
-        setError(result.error.message);
+        setError(msg);
       return;
     }
     if (result.autoLoggedIn) {
       navigate('/');
       return;
     }
-    setSuccessMsg('회원가입이 완료되었습니다! 로그인 탭에서 로그인해주세요.');
+    setSuccessMsg('회원가입 완료! 로그인 탭에서 로그인해주세요.');
   };
 
   return (
