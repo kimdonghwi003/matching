@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Calendar, Users } from 'lucide-react';
+import { MapPin, Calendar, Users, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -15,11 +15,14 @@ const FILTER_OPTIONS = ['All', 'futsal', 'basketball', 'tennis', 'esports'];
 const FILTER_LABEL   = { All: '전체', futsal: '⚽ 풋살', basketball: '🏀 농구', tennis: '🎾 테니스', esports: '🎮 e-sports' };
 
 export default function Home() {
-  const [filter, setFilter]           = useState('All');
-  const [matches, setMatches]         = useState([]);
-  const [applied, setApplied]         = useState(new Set());
-  const [applyingId, setApplyingId]   = useState(null);
+  const [filter, setFilter]                 = useState('All');
+  const [matches, setMatches]               = useState([]);
+  const [applied, setApplied]               = useState(new Set());
+  const [applyingId, setApplyingId]         = useState(null);
   const [loadingMatches, setLoadingMatches] = useState(true);
+  const [expandedId, setExpandedId]         = useState(null);   // 신청자 목록 열린 매칭
+  const [applicants, setApplicants]         = useState({});      // { matchId: [{id, nickname}] }
+  const [loadingApplicants, setLoadingApplicants] = useState(null);
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -37,7 +40,6 @@ export default function Home() {
       .from('matches')
       .select('*, users(nickname)')
       .order('created_at', { ascending: false });
-
     if (!error && data) setMatches(data);
     setLoadingMatches(false);
   };
@@ -50,6 +52,39 @@ export default function Home() {
     if (data) setApplied(new Set(data.map(a => a.match_id)));
   };
 
+  const fetchApplicants = async (matchId) => {
+    if (applicants[matchId]) return; // 이미 불러온 경우
+    setLoadingApplicants(matchId);
+    const { data: apps } = await supabase
+      .from('match_applications')
+      .select('applicant_id')
+      .eq('match_id', matchId);
+
+    if (!apps || apps.length === 0) {
+      setApplicants(prev => ({ ...prev, [matchId]: [] }));
+      setLoadingApplicants(null);
+      return;
+    }
+
+    const ids = apps.map(a => a.applicant_id);
+    const { data: usersData } = await supabase
+      .from('users')
+      .select('id, nickname')
+      .in('id', ids);
+
+    setApplicants(prev => ({ ...prev, [matchId]: usersData || [] }));
+    setLoadingApplicants(null);
+  };
+
+  const toggleApplicants = (matchId) => {
+    if (expandedId === matchId) {
+      setExpandedId(null);
+    } else {
+      setExpandedId(matchId);
+      fetchApplicants(matchId);
+    }
+  };
+
   const handleApply = async (match) => {
     if (!user) { navigate('/login'); return; }
     if (applied.has(match.id)) return;
@@ -60,7 +95,6 @@ export default function Home() {
       applicant_id: user.id,
       message:      '',
     });
-
     if (!error) setApplied(prev => new Set([...prev, match.id]));
     setApplyingId(null);
   };
@@ -76,6 +110,7 @@ export default function Home() {
         <p className="text-muted">실력이 비슷한 교내 학우들과 매칭해보세요!</p>
       </div>
 
+      {/* 필터 */}
       <div className="flex gap-2 mb-3" style={{ overflowX: 'auto', paddingBottom: '8px' }}>
         {FILTER_OPTIONS.map(f => (
           <button
@@ -98,53 +133,114 @@ export default function Home() {
             const isApplying = applyingId === match.id;
             const isAuthor   = user && user.id === match.author_id;
             const authorNick = match.users?.nickname || '알 수 없음';
+            const isExpanded = expandedId === match.id;
 
             return (
-              <div key={match.id} className="card">
+              <div key={match.id} className="card" style={{ padding: '20px' }}>
+                {/* 종목 + 작성자 */}
                 <div className="flex justify-between items-center mb-1">
                   <span className={`tag tag-${match.sport_type}`}>
                     {SPORT_LABEL[match.sport_type] || match.sport_type}
                   </span>
                   <span className="text-muted" style={{ fontSize: '0.85rem' }}>{authorNick}</span>
                 </div>
-                <h3 className="mb-2" style={{ fontSize: '1.2rem', marginTop: '8px' }}>{match.title}</h3>
 
-                <div className="flex-col gap-2 mb-3" style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                {/* 제목 */}
+                <h3 className="mb-2" style={{ fontSize: '1.15rem', marginTop: '8px' }}>{match.title}</h3>
+
+                {/* 정보 */}
+                <div className="flex-col gap-2 mb-3" style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
                   {match.match_date && (
                     <div className="flex items-center gap-2">
-                      <Calendar size={16} />
+                      <Calendar size={15} />
                       {new Date(match.match_date).toLocaleString('ko-KR')}
                     </div>
                   )}
                   {match.location && (
-                    <div className="flex items-center gap-2"><MapPin size={16} /> {match.location}</div>
+                    <div className="flex items-center gap-2"><MapPin size={15} /> {match.location}</div>
                   )}
                   {match.skill_level_required && (
-                    <div className="flex items-center gap-2"><Users size={16} /> 실력: {match.skill_level_required}</div>
+                    <div className="flex items-center gap-2"><Users size={15} /> 실력: {match.skill_level_required}</div>
                   )}
                 </div>
 
+                {/* 버튼 영역 */}
                 {isAuthor ? (
-                  <button
-                    className="btn btn-secondary"
-                    style={{ width: '100%', cursor: 'default', opacity: 0.7 }}
-                    disabled
-                  >
-                    내가 개설한 매칭
-                  </button>
+                  <div className="flex-col gap-2">
+                    {/* 신청자 보기 */}
+                    <button
+                      className="btn btn-secondary"
+                      style={{ width: '100%', justifyContent: 'space-between' }}
+                      onClick={() => toggleApplicants(match.id)}
+                    >
+                      <span>👥 신청자 보기</span>
+                      {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    </button>
+
+                    {/* 신청자 목록 */}
+                    {isExpanded && (
+                      <div style={{
+                        background: '#f8f9fa', borderRadius: 'var(--radius-sm)',
+                        padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px',
+                      }}>
+                        {loadingApplicants === match.id ? (
+                          <p className="text-muted" style={{ fontSize: '0.85rem', margin: 0 }}>불러오는 중...</p>
+                        ) : (applicants[match.id] || []).length === 0 ? (
+                          <p className="text-muted" style={{ fontSize: '0.85rem', margin: 0 }}>아직 신청자가 없습니다.</p>
+                        ) : (
+                          (applicants[match.id] || []).map(applicant => (
+                            <div key={applicant.id} style={{
+                              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div className="chat-avatar" style={{ width: '28px', height: '28px', fontSize: '0.8rem' }}>
+                                  {applicant.nickname[0].toUpperCase()}
+                                </div>
+                                <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>{applicant.nickname}</span>
+                              </div>
+                              <button
+                                className="btn btn-primary"
+                                style={{ padding: '6px 14px', fontSize: '0.82rem' }}
+                                onClick={() => navigate(`/messages/${applicant.id}`)}
+                              >
+                                <MessageCircle size={14} /> 채팅
+                              </button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : isApplied ? (
+                  /* 신청 완료 + 채팅하기 */
+                  <div className="flex gap-2">
+                    <button
+                      className="btn"
+                      style={{
+                        flex: 1, backgroundColor: 'var(--success)', color: '#2d6a4f',
+                        cursor: 'default', fontSize: '0.9rem',
+                      }}
+                      disabled
+                    >
+                      ✓ 신청 완료
+                    </button>
+                    <button
+                      className="btn btn-secondary"
+                      style={{ padding: '12px 16px', fontSize: '0.9rem', gap: '4px' }}
+                      onClick={() => navigate(`/messages/${match.author_id}`)}
+                    >
+                      <MessageCircle size={16} /> 채팅
+                    </button>
+                  </div>
                 ) : (
+                  /* 신청하기 */
                   <button
                     className="btn btn-primary"
-                    style={{
-                      width: '100%',
-                      backgroundColor: isApplied ? 'var(--success)' : undefined,
-                      color: isApplied ? '#2d6a4f' : undefined,
-                      cursor: isApplied ? 'default' : 'pointer',
-                    }}
+                    style={{ width: '100%' }}
                     onClick={() => handleApply(match)}
-                    disabled={isApplied || isApplying}
+                    disabled={isApplying}
                   >
-                    {isApplying ? '신청 중...' : isApplied ? '✓ 신청 완료' : '신청하기'}
+                    {isApplying ? '신청 중...' : '신청하기'}
                   </button>
                 )}
               </div>

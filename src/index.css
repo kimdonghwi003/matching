@@ -198,3 +198,35 @@ h1, h2, h3 {
 .tag-basketball { background-color: #ffecd1; color: #9d0208; }
 .tag-tennis { background-color: #e0e1dd; color: #415a77; }
 .tag-esports { background-color: #e5e5f5; color: #5a189a; }
+
+/* Chat */
+.chat-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.chat-conv-item {
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.chat-conv-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
