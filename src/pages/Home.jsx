@@ -37,11 +37,21 @@ export default function Home() {
 
   const fetchMatches = async () => {
     setLoadingMatches(true);
+    // 먼저 조인 포함 조회 시도
     const { data, error } = await supabase
       .from('matches')
       .select('*, users(nickname)')
       .order('created_at', { ascending: false });
-    if (!error && data) setMatches(data);
+    if (data) {
+      setMatches(data);
+    } else if (error) {
+      // 조인 실패 시 닉네임 없이 재조회 (RLS 문제 우회)
+      const { data: fallback } = await supabase
+        .from('matches')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (fallback) setMatches(fallback);
+    }
     setLoadingMatches(false);
   };
 
