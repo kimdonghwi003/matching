@@ -12,6 +12,7 @@ export default function Chat() {
   const [input, setInput] = useState('');
   const [otherUser, setOtherUser] = useState(null);
   const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState('');
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -75,12 +76,22 @@ export default function Chat() {
     const content = input.trim();
     if (!content || sending) return;
     setSending(true);
+    setSendError('');
     setInput('');
     const { data, error } = await supabase
       .from('messages')
       .insert({ sender_id: user.id, receiver_id: otherUserId, content })
       .select().single();
-    if (!error && data) setMessages(prev => [...prev, data]);
+    if (!error && data) {
+      setMessages(prev => [...prev, data]);
+    } else if (error) {
+      setInput(content); // 실패 시 입력창 복원
+      if (error.code === '42501' || error.message?.includes('security policy')) {
+        setSendError('권한 오류: Supabase SQL Editor에서 messages 테이블 RLS 정책을 설정해주세요.');
+      } else {
+        setSendError(`전송 오류: ${error.message}`);
+      }
+    }
     setSending(false);
     inputRef.current?.focus();
   };
@@ -177,6 +188,16 @@ export default function Chat() {
         })}
         <div ref={bottomRef} />
       </div>
+
+      {sendError && (
+        <div style={{
+          background: '#fff0f3', color: 'var(--danger)',
+          padding: '10px 14px', borderRadius: 'var(--radius-sm)',
+          fontSize: '0.82rem', marginBottom: '6px', flexShrink: 0,
+        }}>
+          ⚠️ {sendError}
+        </div>
+      )}
 
       {/* 입력창 */}
       <form
