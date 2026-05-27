@@ -86,7 +86,7 @@ export default function Facility() {
 
       {/* 예약 안내 배너 */}
       <div style={{
-        background: 'linear-gradient(135deg, var(--primary) 0%, #1a7a4e 100%)',
+        background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
         color: 'white',
         borderRadius: 'var(--radius-md)',
         padding: '16px 20px',
@@ -140,7 +140,7 @@ export default function Facility() {
             <div className="flex gap-1" style={{ flexWrap: 'wrap', marginBottom: '10px' }}>
               {fac.tags.map((tag) => (
                 <span key={tag} style={{
-                  background: '#e8f4fd', color: '#1a73e8',
+                  background: 'var(--primary-light)', color: 'var(--primary)',
                   padding: '2px 8px', borderRadius: '999px', fontSize: '0.75rem', fontWeight: '500',
                 }}>
                   {tag}
@@ -162,7 +162,7 @@ export default function Facility() {
                 <span>{fac.location}</span>
               </div>
               {fac.note && (
-                <div style={{ marginTop: '4px', padding: '6px 10px', background: '#fff8e1', borderRadius: '6px', color: '#7c5c00', fontSize: '0.8rem' }}>
+                <div style={{ marginTop: '4px', padding: '6px 10px', background: '#FFF8E8', borderRadius: '6px', color: '#8B5E00', fontSize: '0.8rem' }}>
                   ⚠️ {fac.note}
                 </div>
               )}

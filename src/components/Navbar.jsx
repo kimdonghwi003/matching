@@ -54,7 +54,7 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <Link to="/" className="nav-brand">
-        <span style={{ fontSize: '1.5rem' }}>🌱</span> CBNU Match
+        <span style={{ fontSize: '1.5rem' }}>🐮</span> CBNU Match
       </Link>
       <div className="nav-links" style={{ alignItems: 'center' }}>
         <Link to="/" title="홈">

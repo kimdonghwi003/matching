@@ -247,7 +247,7 @@ export default function Home() {
                     {/* 신청자 목록 */}
                     {isExpanded && (
                       <div style={{
-                        background: '#f8f9fa', borderRadius: 'var(--radius-sm)',
+                        background: 'var(--bg-color)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)',
                         padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px',
                       }}>
                         {loadingApplicants === match.id ? (

@@ -189,7 +189,7 @@ export default function Contest() {
                     {contest.categoryLabel}
                   </span>
                   <span style={{
-                    background: '#e8f4fd', color: '#1a73e8',
+                    background: 'var(--primary-light)', color: 'var(--primary)',
                     padding: '2px 10px', borderRadius: '999px', fontSize: '0.75rem', fontWeight: '600',
                   }}>
                     {contest.region === '충북' ? '충청북도' : '충청남도'}
@@ -270,7 +270,7 @@ export default function Contest() {
 
                   {/* 팀 생성 폼 */}
                   {isCreating && (
-                    <div style={{ background: '#f8f9fa', borderRadius: 'var(--radius-md)', padding: '16px' }}>
+                    <div style={{ background: 'var(--bg-color)', borderRadius: 'var(--radius-md)', padding: '16px', border: '1px solid var(--border)' }}>
                       <div className="flex justify-between items-center mb-2">
                         <h4 style={{ margin: 0 }}>팀 모집 글 작성</h4>
                         <button
@@ -378,7 +378,7 @@ export default function Contest() {
                           key={team.id}
                           style={{
                             background: '#ffffff',
-                            border: '1px solid #e9ecef',
+                            border: '1px solid var(--border)',
                             borderRadius: 'var(--radius-sm)',
                             padding: '16px',
                           }}
@@ -404,7 +404,7 @@ export default function Contest() {
                                 <span
                                   key={role}
                                   style={{
-                                    background: '#e8f4fd', color: '#1a73e8',
+                                    background: 'var(--primary-light)', color: 'var(--primary)',
                                     padding: '2px 8px', borderRadius: '999px', fontSize: '0.75rem', fontWeight: '500',
                                   }}
                                 >

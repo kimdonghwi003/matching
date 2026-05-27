@@ -216,7 +216,7 @@ export default function Profile() {
         {/* 매너 온도 */}
         <div
           className="flex justify-between items-center mt-2"
-          style={{ backgroundColor: '#f1f3f5', padding: '14px 16px', borderRadius: 'var(--radius-md)' }}
+          style={{ backgroundColor: 'var(--primary-light)', padding: '14px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}
         >
           <span style={{ fontWeight: '600' }}>🌡️ 매너 온도</span>
           <span style={{ color: 'var(--danger)', fontWeight: 'bold', fontSize: '1.4rem' }}>36.5°C</span>

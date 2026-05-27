@@ -131,9 +131,9 @@ export default function Login() {
           </div>
           {/* 로그인 안내 문구 */}
           <div style={{
-            background: '#e8f4fd', border: '1px solid #bde0ff',
+            background: 'var(--primary-light)', border: '1px solid #E4B4BA',
             borderRadius: 'var(--radius-sm)', padding: '12px 14px',
-            marginBottom: '16px', fontSize: '0.8rem', color: '#1a3c6a', lineHeight: '1.6',
+            marginBottom: '16px', fontSize: '0.8rem', color: 'var(--primary-dark)', lineHeight: '1.6',
           }}>
             🔐 <strong>로그인 안내</strong><br />
             회원가입 시 등록한 이메일과 비밀번호로 로그인해주세요.
@@ -195,9 +195,9 @@ export default function Login() {
           </div>
           {/* 회원가입 개인정보 보호 안내 문구 */}
           <div style={{
-            background: '#e8f4fd', border: '1px solid #bde0ff',
+            background: 'var(--primary-light)', border: '1px solid #E4B4BA',
             borderRadius: 'var(--radius-sm)', padding: '12px 14px',
-            marginBottom: '16px', fontSize: '0.8rem', color: '#1a3c6a', lineHeight: '1.7',
+            marginBottom: '16px', fontSize: '0.8rem', color: 'var(--primary-dark)', lineHeight: '1.7',
           }}>
             🔐 <strong>개인정보 보호 안내</strong><br />
             회원가입 시 입력하신 이메일과 비밀번호는 Supabase 데이터베이스에 암호화(해시 처리)된 상태로
