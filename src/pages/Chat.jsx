@@ -67,9 +67,10 @@ export default function Chat() {
     setMessages(all);
   };
 
-  const markAsRead = () =>
-    supabase.from('messages').update({ is_read: true })
+  const markAsRead = async () => {
+    await supabase.from('messages').update({ is_read: true })
       .eq('receiver_id', user.id).eq('sender_id', otherUserId).eq('is_read', false);
+  };
 
   const sendMessage = async (e) => {
     e.preventDefault();

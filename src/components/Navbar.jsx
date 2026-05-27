@@ -34,7 +34,7 @@ export default function Navbar() {
         schema: 'public',
         table: 'messages',
         filter: `receiver_id=eq.${user.id}`,
-      }, () => setUnread(prev => prev + 1))
+      }, () => fetchUnread())
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
