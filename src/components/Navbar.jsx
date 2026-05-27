@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, User, PlusCircle, LogIn, LogOut, MessageSquare } from 'lucide-react';
+import { Home, User, PlusCircle, LogIn, LogOut, MessageSquare, Trophy, Building } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -62,6 +62,12 @@ export default function Navbar() {
         </Link>
         <Link to="/create-match" title="모집하기">
           <PlusCircle size={24} color={isActive('/create-match') ? 'var(--primary)' : 'var(--text-muted)'} />
+        </Link>
+        <Link to="/contest" title="공모전">
+          <Trophy size={24} color={isActive('/contest') ? 'var(--primary)' : 'var(--text-muted)'} />
+        </Link>
+        <Link to="/facility" title="시설예약">
+          <Building size={24} color={isActive('/facility') ? 'var(--primary)' : 'var(--text-muted)'} />
         </Link>
 
         {user && (

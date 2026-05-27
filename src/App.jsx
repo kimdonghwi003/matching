@@ -7,6 +7,8 @@ import Profile from './pages/Profile';
 import CreateMatch from './pages/CreateMatch';
 import Messages from './pages/Messages';
 import Chat from './pages/Chat';
+import Contest from './pages/Contest';
+import Facility from './pages/Facility';
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/create-match" element={<CreateMatch />} />
+              <Route path="/contest" element={<Contest />} />
+              <Route path="/facility" element={<Facility />} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/messages/:userId" element={<Chat />} />
             </Routes>

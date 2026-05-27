@@ -20,9 +20,10 @@ export default function Home() {
   const [applied, setApplied]               = useState(new Set());
   const [applyingId, setApplyingId]         = useState(null);
   const [loadingMatches, setLoadingMatches] = useState(true);
-  const [expandedId, setExpandedId]         = useState(null);   // 신청자 목록 열린 매칭
-  const [applicants, setApplicants]         = useState({});      // { matchId: [{id, nickname}] }
+  const [expandedId, setExpandedId]               = useState(null);
+  const [applicants, setApplicants]               = useState({});
   const [loadingApplicants, setLoadingApplicants] = useState(null);
+  const [deletingId, setDeletingId]               = useState(null);
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -85,6 +86,18 @@ export default function Home() {
     }
   };
 
+  const handleDeleteMatch = async (matchId) => {
+    if (!window.confirm('이 매칭 글을 삭제하시겠습니까?')) return;
+    setDeletingId(matchId);
+    const { error } = await supabase
+      .from('matches')
+      .delete()
+      .eq('id', matchId)
+      .eq('author_id', user.id);
+    if (!error) setMatches((prev) => prev.filter((m) => m.id !== matchId));
+    setDeletingId(null);
+  };
+
   const handleApply = async (match) => {
     if (!user) { navigate('/login'); return; }
     if (applied.has(match.id)) return;
@@ -133,7 +146,8 @@ export default function Home() {
             const isApplying = applyingId === match.id;
             const isAuthor   = user && user.id === match.author_id;
             const authorNick = match.users?.nickname || '알 수 없음';
-            const isExpanded = expandedId === match.id;
+            const isExpanded  = expandedId === match.id;
+            const isDeleting  = deletingId === match.id;
 
             return (
               <div key={match.id} className="card" style={{ padding: '20px' }}>
@@ -175,6 +189,20 @@ export default function Home() {
                     >
                       <span>👥 신청자 보기</span>
                       {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    </button>
+
+                    {/* 매칭 글 삭제 */}
+                    <button
+                      className="btn"
+                      style={{
+                        width: '100%', background: '#fff0f3',
+                        color: 'var(--danger)', border: '1px solid #ffc9d4',
+                        fontSize: '0.88rem',
+                      }}
+                      onClick={() => handleDeleteMatch(match.id)}
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? '삭제 중...' : '🗑️ 매칭 글 삭제'}
                     </button>
 
                     {/* 신청자 목록 */}

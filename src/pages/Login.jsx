@@ -129,6 +129,16 @@ export default function Login() {
               onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
             />
           </div>
+          {/* 로그인 안내 문구 */}
+          <div style={{
+            background: '#e8f4fd', border: '1px solid #bde0ff',
+            borderRadius: 'var(--radius-sm)', padding: '12px 14px',
+            marginBottom: '16px', fontSize: '0.8rem', color: '#1a3c6a', lineHeight: '1.6',
+          }}>
+            🔐 <strong>로그인 안내</strong><br />
+            회원가입 시 등록한 이메일과 비밀번호로 로그인해주세요.
+            회원 탈퇴 전까지 계정 정보가 유지됩니다.
+          </div>
           <button className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
             {loading ? '로그인 중...' : '로그인'}
           </button>
@@ -182,6 +192,18 @@ export default function Login() {
               value={signupForm.passwordConfirm} required
               onChange={(e) => setSignupForm({ ...signupForm, passwordConfirm: e.target.value })}
             />
+          </div>
+          {/* 회원가입 개인정보 보호 안내 문구 */}
+          <div style={{
+            background: '#e8f4fd', border: '1px solid #bde0ff',
+            borderRadius: 'var(--radius-sm)', padding: '12px 14px',
+            marginBottom: '16px', fontSize: '0.8rem', color: '#1a3c6a', lineHeight: '1.7',
+          }}>
+            🔐 <strong>개인정보 보호 안내</strong><br />
+            회원가입 시 입력하신 이메일과 비밀번호는 Supabase 데이터베이스에 암호화(해시 처리)된 상태로
+            안전하게 저장됩니다. 회원 탈퇴 전까지 동일한 이메일과 비밀번호로 로그인하실 수 있습니다.
+            이메일 인증번호 발송은 진행되지 않으며, 가입 즉시 로그인이 가능합니다.
+            이미 가입된 이메일로는 중복 가입이 불가하며, 비밀번호와 비밀번호 확인이 일치해야 가입이 완료됩니다.
           </div>
           <button className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
             {loading ? '가입 중...' : '회원가입'}
