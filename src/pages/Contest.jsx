@@ -96,7 +96,13 @@ export default function Contest() {
       .single();
 
     if (error) {
-      setCreateError('팀 등록 중 오류가 발생했습니다. 다시 시도해주세요.');
+      if (error.code === '42P01') {
+        setCreateError('contest_teams 테이블이 없습니다. Supabase SQL Editor에서 supabase_contest_setup.sql을 실행해주세요.');
+      } else if (error.code === '42501') {
+        setCreateError('권한 오류입니다. 로그인 상태를 확인하거나 Supabase RLS 정책을 확인해주세요.');
+      } else {
+        setCreateError(`오류: ${error.message}`);
+      }
     } else if (data) {
       setTeams((prev) => ({
         ...prev,
