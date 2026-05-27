@@ -26,7 +26,7 @@ export default function Login() {
       if (err.message.includes('Invalid login credentials') || err.message.includes('invalid_credentials'))
         setError('이메일 또는 비밀번호가 올바르지 않습니다.');
       else if (err.message.includes('Email not confirmed') || err.message.includes('email_not_confirmed'))
-        setError('이메일 인증이 완료되지 않았습니다. Supabase SQL에서 supabase_rls_setup.sql을 실행해주세요.');
+        setError('이메일 인증이 필요한 계정입니다. Supabase 대시보드 → Authentication → Providers → Email → "Confirm email" 을 OFF로 설정하고, SQL Editor에서 UPDATE auth.users SET email_confirmed_at = NOW() WHERE email_confirmed_at IS NULL; 을 실행해주세요.');
       else
         setError(err.message);
       return;
