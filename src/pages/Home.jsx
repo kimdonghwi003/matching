@@ -24,6 +24,7 @@ export default function Home() {
   const [applicants, setApplicants]               = useState({});
   const [loadingApplicants, setLoadingApplicants] = useState(null);
   const [deletingId, setDeletingId]               = useState(null);
+  const [applyError, setApplyError]               = useState('');
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -64,12 +65,19 @@ export default function Home() {
   };
 
   const fetchApplicants = async (matchId) => {
-    if (applicants[matchId]) return; // 이미 불러온 경우
+    if (applicants[matchId]) return;
     setLoadingApplicants(matchId);
-    const { data: apps } = await supabase
+    const { data: apps, error: appErr } = await supabase
       .from('match_applications')
       .select('applicant_id')
       .eq('match_id', matchId);
+
+    if (appErr) {
+      setApplicants(prev => ({ ...prev, [matchId]: [] }));
+      setLoadingApplicants(null);
+      setApplyError(`신청자 조회 오류: ${appErr.message}`);
+      return;
+    }
 
     if (!apps || apps.length === 0) {
       setApplicants(prev => ({ ...prev, [matchId]: [] }));
@@ -113,12 +121,23 @@ export default function Home() {
     if (applied.has(match.id)) return;
 
     setApplyingId(match.id);
+    setApplyError('');
     const { error } = await supabase.from('match_applications').insert({
       match_id:     match.id,
       applicant_id: user.id,
       message:      '',
     });
-    if (!error) setApplied(prev => new Set([...prev, match.id]));
+    if (!error) {
+      setApplied(prev => new Set([...prev, match.id]));
+    } else {
+      if (error.code === '42P01') {
+        setApplyError('match_applications 테이블이 없습니다. SQL을 실행해주세요.');
+      } else if (error.code === '23505') {
+        setApplied(prev => new Set([...prev, match.id])); // 이미 신청됨
+      } else {
+        setApplyError(`신청 오류: ${error.message}`);
+      }
+    }
     setApplyingId(null);
   };
 
@@ -132,6 +151,16 @@ export default function Home() {
         <h2 style={{ color: 'var(--primary)' }}>🔥 오늘의 매칭</h2>
         <p className="text-muted">실력이 비슷한 교내 학우들과 매칭해보세요!</p>
       </div>
+
+      {applyError && (
+        <div style={{
+          background: '#fff0f3', color: 'var(--danger)',
+          padding: '12px 16px', borderRadius: 'var(--radius-md)',
+          marginBottom: '16px', fontSize: '0.88rem',
+        }}>
+          ⚠️ {applyError}
+        </div>
+      )}
 
       {/* 필터 */}
       <div className="flex gap-2 mb-3" style={{ overflowX: 'auto', paddingBottom: '8px' }}>
