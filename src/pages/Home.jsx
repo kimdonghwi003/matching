@@ -147,9 +147,33 @@ export default function Home() {
 
   return (
     <div>
-      <div className="mb-3 text-center">
-        <h2 style={{ color: 'var(--primary)' }}>🔥 오늘의 매칭</h2>
-        <p className="text-muted">실력이 비슷한 교내 학우들과 매칭해보세요!</p>
+      {/* 히어로 배너 — 이미지 왼쪽 절반(축구 장면) */}
+      <div style={{
+        position: 'relative', height: '160px',
+        borderRadius: 'var(--radius-md)', overflow: 'hidden', marginBottom: '24px',
+      }}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: 'url(/hero-bg.png)',
+          backgroundSize: '200% auto',
+          backgroundPosition: '0% 50%',
+        }} />
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(135deg, rgba(107,18,33,0.70) 0%, rgba(30,18,21,0.55) 100%)',
+        }} />
+        <div style={{
+          position: 'relative', height: '100%',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          color: 'white', textShadow: '0 2px 8px rgba(0,0,0,0.45)',
+          padding: '0 16px', textAlign: 'center',
+        }}>
+          <h2 style={{ margin: 0, color: 'white', fontSize: '1.4rem' }}>🔥 오늘의 매칭</h2>
+          <p style={{ margin: '6px 0 0', opacity: 0.9, fontSize: '0.88rem' }}>
+            실력이 비슷한 교내 학우들과 매칭해보세요!
+          </p>
+        </div>
       </div>
 
       {applyError && (

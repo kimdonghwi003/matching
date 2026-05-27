@@ -135,9 +135,33 @@ export default function Contest() {
 
   return (
     <div>
-      <div className="mb-3 text-center">
-        <h2 style={{ color: 'var(--primary)' }}>🏆 공모전 팀원 매칭</h2>
-        <p className="text-muted">충청북도·충청남도 공모전에 함께할 팀원을 찾아보세요!</p>
+      {/* 히어로 배너 — 이미지 오른쪽 절반(노트북 팀작업 장면) */}
+      <div style={{
+        position: 'relative', height: '160px',
+        borderRadius: 'var(--radius-md)', overflow: 'hidden', marginBottom: '24px',
+      }}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: 'url(/hero-bg.png)',
+          backgroundSize: '200% auto',
+          backgroundPosition: '100% 50%',
+        }} />
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(135deg, rgba(30,18,21,0.50) 0%, rgba(107,18,33,0.68) 100%)',
+        }} />
+        <div style={{
+          position: 'relative', height: '100%',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          color: 'white', textShadow: '0 2px 8px rgba(0,0,0,0.45)',
+          padding: '0 16px', textAlign: 'center',
+        }}>
+          <h2 style={{ margin: 0, color: 'white', fontSize: '1.4rem' }}>🏆 공모전 팀원 매칭</h2>
+          <p style={{ margin: '6px 0 0', opacity: 0.9, fontSize: '0.88rem' }}>
+            충청북도·충청남도 공모전에 함께할 팀원을 찾아보세요!
+          </p>
+        </div>
       </div>
 
       {/* 지역 필터 */}
