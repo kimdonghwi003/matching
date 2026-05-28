@@ -25,33 +25,70 @@ export default function Home() {
   const [loadingApplicants, setLoadingApplicants] = useState(null);
   const [deletingId, setDeletingId]               = useState(null);
   const [applyError, setApplyError]               = useState('');
+  const [applyCounts, setApplyCounts]             = useState({});
 
   const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => { fetchMatches(); }, []);
 
+  // 실시간 신청자 수 동기화
+  useEffect(() => {
+    const channel = supabase
+      .channel('home-apply-realtime')
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'match_applications' },
+        (payload) => {
+          const mid = payload.new.match_id;
+          setApplyCounts(prev => ({ ...prev, [mid]: (prev[mid] || 0) + 1 }));
+        }
+      )
+      .on('postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'match_applications' },
+        (payload) => {
+          const mid = payload.old.match_id;
+          setApplyCounts(prev => ({ ...prev, [mid]: Math.max(0, (prev[mid] || 0) - 1) }));
+        }
+      )
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, []);
+
   useEffect(() => {
     if (user) fetchApplied();
     else setApplied(new Set());
   }, [user]);
 
+  const fetchApplyCounts = async (ids) => {
+    if (!ids.length) return;
+    const { data } = await supabase
+      .from('match_applications')
+      .select('match_id')
+      .in('match_id', ids);
+    if (!data) return;
+    const counts = {};
+    data.forEach(({ match_id }) => { counts[match_id] = (counts[match_id] || 0) + 1; });
+    setApplyCounts(counts);
+  };
+
   const fetchMatches = async () => {
     setLoadingMatches(true);
-    // 먼저 조인 포함 조회 시도
     const { data, error } = await supabase
       .from('matches')
       .select('*, users(nickname)')
       .order('created_at', { ascending: false });
     if (data) {
       setMatches(data);
+      fetchApplyCounts(data.map(m => m.id));
     } else if (error) {
-      // 조인 실패 시 닉네임 없이 재조회 (RLS 문제 우회)
       const { data: fallback } = await supabase
         .from('matches')
         .select('*')
         .order('created_at', { ascending: false });
-      if (fallback) setMatches(fallback);
+      if (fallback) {
+        setMatches(fallback);
+        fetchApplyCounts(fallback.map(m => m.id));
+      }
     }
     setLoadingMatches(false);
   };
@@ -212,6 +249,8 @@ export default function Home() {
             const isExpanded  = expandedId === match.id;
             const isDeleting  = deletingId === match.id;
 
+            const applyCount = applyCounts[match.id] || 0;
+
             return (
               <div key={match.id} className="card" style={{ padding: '20px' }}>
                 {/* 종목 + 작성자 */}
@@ -219,7 +258,17 @@ export default function Home() {
                   <span className={`tag tag-${match.sport_type}`}>
                     {SPORT_LABEL[match.sport_type] || match.sport_type}
                   </span>
-                  <span className="text-muted" style={{ fontSize: '0.85rem' }}>{authorNick}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{
+                      fontSize: '0.75rem', fontWeight: '700',
+                      padding: '2px 9px', borderRadius: '999px',
+                      background: applyCount > 0 ? 'var(--primary)' : 'var(--border)',
+                      color: applyCount > 0 ? 'white' : 'var(--text-muted)',
+                    }}>
+                      👥 {applyCount}명 신청
+                    </span>
+                    <span className="text-muted" style={{ fontSize: '0.85rem' }}>{authorNick}</span>
+                  </div>
                 </div>
 
                 {/* 제목 */}

@@ -27,6 +27,7 @@ export default function Contest() {
   const [createForm, setCreateForm] = useState({ teamName: '', description: '', maxSize: 4, roles: [] });
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
+  const [contestStats, setContestStats] = useState({});
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -35,6 +36,53 @@ export default function Contest() {
     if (user) fetchApplied();
     else setAppliedTeams(new Set());
   }, [user]);
+
+  // 공모전별 실시간 모집 현황
+  useEffect(() => {
+    fetchContestStats();
+    const channel = supabase
+      .channel('contest-stats-realtime')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'contest_team_applications' },
+        fetchContestStats
+      )
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'contest_teams' },
+        fetchContestStats
+      )
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, []);
+
+  const fetchContestStats = async () => {
+    const { data: teams } = await supabase
+      .from('contest_teams')
+      .select('id, contest_id, max_size')
+      .eq('is_recruiting', true);
+
+    const teamMap = {};
+    const stats = {};
+    (teams || []).forEach(t => {
+      teamMap[t.id] = t;
+      if (!stats[t.contest_id]) stats[t.contest_id] = { teamCount: 0, totalSlots: 0, applicantCount: 0 };
+      stats[t.contest_id].teamCount++;
+      stats[t.contest_id].totalSlots += t.max_size;
+    });
+
+    const teamIds = Object.keys(teamMap);
+    if (teamIds.length) {
+      const { data: apps } = await supabase
+        .from('contest_team_applications')
+        .select('team_id')
+        .in('team_id', teamIds);
+      (apps || []).forEach(({ team_id }) => {
+        const contestId = teamMap[team_id]?.contest_id;
+        if (contestId && stats[contestId]) stats[contestId].applicantCount++;
+      });
+    }
+
+    setContestStats(stats);
+  };
 
   const fetchApplied = async () => {
     const { data } = await supabase
@@ -252,6 +300,11 @@ export default function Contest() {
           const isCreating = showCreateForm === contest.id;
           const daysLeft = getDaysLeft(contest.deadline);
 
+          const stat = contestStats[contest.id];
+          const pct = stat && stat.totalSlots > 0
+            ? Math.min(100, Math.round((stat.applicantCount / stat.totalSlots) * 100))
+            : 0;
+
           return (
             <div key={contest.id} className="card" style={{ padding: '20px' }}>
               {/* 태그 + 마감 */}
@@ -303,6 +356,33 @@ export default function Contest() {
                 <div className="flex items-center gap-2" style={{ flexWrap: 'wrap' }}>
                   <Users size={13} />
                   <span>최대 {contest.maxTeamSize}인 | 추천 역할: {contest.suggestedRoles.join(' · ')}</span>
+                </div>
+              </div>
+
+              {/* 실시간 모집 현황 */}
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    {stat
+                      ? `모집 팀 ${stat.teamCount}개 · 총 ${stat.totalSlots}자리`
+                      : '아직 모집 팀 없음'}
+                  </span>
+                  <span style={{
+                    fontSize: '0.78rem', fontWeight: '700',
+                    padding: '2px 9px', borderRadius: '999px',
+                    background: stat && stat.applicantCount > 0 ? 'var(--primary)' : 'var(--border)',
+                    color: stat && stat.applicantCount > 0 ? 'white' : 'var(--text-muted)',
+                  }}>
+                    👥 신청자 {stat ? stat.applicantCount : 0}명
+                  </span>
+                </div>
+                <div style={{ height: '6px', borderRadius: '999px', background: 'var(--border)', overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%', width: `${pct}%`,
+                    background: pct >= 80 ? 'var(--danger)' : 'var(--primary)',
+                    borderRadius: '999px',
+                    transition: 'width 0.4s ease',
+                  }} />
                 </div>
               </div>
 
