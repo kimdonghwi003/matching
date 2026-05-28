@@ -273,14 +273,15 @@ export default function Home() {
             const isDeleting  = deletingId === match.id;
 
             const applyCount = applyCounts[match.id] || 0;
+            const displayCount = applyCount + 1; // 작성자 1명 포함
             const maxPlayers = match.max_players || 0;
             const totalSlots = maxPlayers + RESERVE_SLOTS;
-            const mainCount = maxPlayers > 0 ? Math.min(applyCount, maxPlayers) : applyCount;
-            const reserveCount = maxPlayers > 0 ? Math.max(0, applyCount - maxPlayers) : 0;
+            const mainCount = maxPlayers > 0 ? Math.min(displayCount, maxPlayers) : displayCount;
+            const reserveCount = maxPlayers > 0 ? Math.max(0, displayCount - maxPlayers) : 0;
             const mainPct = maxPlayers > 0 ? (mainCount / totalSlots) * 100 : 0;
             const reservePct = maxPlayers > 0 ? (reserveCount / totalSlots) * 100 : 0;
             const dividerPct = maxPlayers > 0 ? (maxPlayers / totalSlots) * 100 : 0;
-            const isFull = maxPlayers > 0 && applyCount >= maxPlayers;
+            const isFull = maxPlayers > 0 && displayCount >= maxPlayers;
 
             return (
               <div key={match.id} className="card" style={{ padding: '20px' }}>
@@ -302,9 +303,9 @@ export default function Home() {
                     }}>
                       {maxPlayers > 0
                         ? reserveCount > 0
-                          ? `👥 ${applyCount}/${maxPlayers + RESERVE_SLOTS}명 (예비 ${reserveCount}/${RESERVE_SLOTS})`
-                          : `👥 ${applyCount}/${maxPlayers}명`
-                        : `👥 ${applyCount}명`}
+                          ? `👥 ${displayCount}/${maxPlayers + RESERVE_SLOTS}명 (예비 ${reserveCount}/${RESERVE_SLOTS})`
+                          : `👥 ${displayCount}/${maxPlayers}명`
+                        : `👥 ${displayCount}명`}
                     </span>
                     <span className="text-muted" style={{ fontSize: '0.85rem' }}>{authorNick}</span>
                   </div>
@@ -324,7 +325,7 @@ export default function Home() {
                   </span>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
                     <span style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--danger)', letterSpacing: '-0.5px' }}>
-                      {applyCount}
+                      {displayCount}
                     </span>
                     <span style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--danger)' }}>
                       / {maxPlayers > 0 ? maxPlayers : '?'}명
