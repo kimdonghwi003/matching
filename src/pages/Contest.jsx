@@ -370,10 +370,12 @@ export default function Contest() {
                   <span style={{
                     fontSize: '0.78rem', fontWeight: '700',
                     padding: '2px 9px', borderRadius: '999px',
-                    background: stat && stat.applicantCount > 0 ? 'var(--primary)' : 'var(--border)',
-                    color: stat && stat.applicantCount > 0 ? 'white' : 'var(--text-muted)',
+                    background: stat && stat.totalSlots > 0
+                      ? pct >= 80 ? 'var(--danger)' : 'var(--primary)'
+                      : 'var(--border)',
+                    color: stat && stat.totalSlots > 0 ? 'white' : 'var(--text-muted)',
                   }}>
-                    👥 신청자 {stat ? stat.applicantCount : 0}명
+                    👥 {stat ? stat.applicantCount : 0}/{stat ? stat.totalSlots : 0}명
                   </span>
                 </div>
                 <div style={{ height: '6px', borderRadius: '999px', background: 'var(--border)', overflow: 'hidden' }}>

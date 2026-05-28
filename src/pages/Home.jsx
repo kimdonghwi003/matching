@@ -269,25 +269,22 @@ export default function Home() {
                     {SPORT_LABEL[match.sport_type] || match.sport_type}
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {maxPlayers > 0 ? (
-                      <span style={{
-                        fontSize: '0.75rem', fontWeight: '700',
-                        padding: '2px 9px', borderRadius: '999px',
-                        background: reserveCount > 0 ? 'var(--danger)' : isFull ? '#f59e0b' : 'var(--primary)',
-                        color: 'white',
-                      }}>
-                        {reserveCount > 0 ? `마감 · 예비 ${reserveCount}/${RESERVE_SLOTS}` : `👥 ${mainCount}/${maxPlayers}`}
-                      </span>
-                    ) : (
-                      <span style={{
-                        fontSize: '0.75rem', fontWeight: '700',
-                        padding: '2px 9px', borderRadius: '999px',
-                        background: applyCount > 0 ? 'var(--primary)' : 'var(--border)',
-                        color: applyCount > 0 ? 'white' : 'var(--text-muted)',
-                      }}>
-                        👥 {applyCount}명 신청
-                      </span>
-                    )}
+                    <span style={{
+                      fontSize: '0.75rem', fontWeight: '700',
+                      padding: '2px 9px', borderRadius: '999px',
+                      background: reserveCount > 0
+                        ? 'var(--danger)'
+                        : isFull
+                        ? '#f59e0b'
+                        : 'var(--primary)',
+                      color: 'white',
+                    }}>
+                      {maxPlayers > 0
+                        ? reserveCount > 0
+                          ? `👥 ${applyCount}/${maxPlayers + RESERVE_SLOTS}명 (예비 ${reserveCount}/${RESERVE_SLOTS})`
+                          : `👥 ${applyCount}/${maxPlayers}명`
+                        : `👥 ${applyCount}명`}
+                    </span>
                     <span className="text-muted" style={{ fontSize: '0.85rem' }}>{authorNick}</span>
                   </div>
                 </div>
