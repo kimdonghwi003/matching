@@ -107,6 +107,10 @@ export default function Home() {
     if (applicants[matchId]) return;
     setLoadingApplicants(matchId);
 
+    const match = matches.find(m => m.id === matchId);
+    const authorId = match?.author_id;
+    const sportType = match?.sport_type;
+
     const { data: apps, error: appErr } = await supabase
       .from('match_applications')
       .select('applicant_id')
@@ -119,28 +123,20 @@ export default function Home() {
       return;
     }
 
-    if (!apps || apps.length === 0) {
-      setApplicants(prev => ({ ...prev, [matchId]: [] }));
-      setLoadingApplicants(null);
-      return;
-    }
+    const applicantIds = (apps || []).map(a => a.applicant_id);
+    const allIds = [...new Set([authorId, ...applicantIds].filter(Boolean))];
 
-    const ids = apps.map(a => a.applicant_id);
-
-    // 유저 기본 정보 + 매너 온도
     const { data: usersData } = await supabase
       .from('users')
       .select('id, nickname, manner_score')
-      .in('id', ids);
+      .in('id', allIds);
 
-    // 해당 매칭 종목의 스포츠 프로필 (실력·포지션)
-    const sportType = matches.find(m => m.id === matchId)?.sport_type;
     let profiles = [];
-    if (sportType) {
+    if (sportType && allIds.length > 0) {
       const { data: profileData } = await supabase
         .from('sport_profiles')
         .select('user_id, skill_level, position')
-        .in('user_id', ids)
+        .in('user_id', allIds)
         .eq('sport_type', sportType);
       profiles = profileData || [];
     }
@@ -149,7 +145,9 @@ export default function Home() {
       ...u,
       skill_level: profiles.find(p => p.user_id === u.id)?.skill_level ?? null,
       position:    profiles.find(p => p.user_id === u.id)?.position    ?? null,
+      isAuthor:    u.id === authorId,
     }));
+    merged.sort((a, b) => (b.isAuthor ? 1 : 0) - (a.isAuthor ? 1 : 0));
 
     setApplicants(prev => ({ ...prev, [matchId]: merged }));
     setLoadingApplicants(null);
@@ -452,14 +450,23 @@ export default function Home() {
                                       {applicant.nickname[0].toUpperCase()}
                                     </div>
                                     <span style={{ fontWeight: '700', fontSize: '0.95rem' }}>{applicant.nickname}</span>
+                                    {applicant.isAuthor && (
+                                      <span style={{
+                                        fontSize: '0.7rem', fontWeight: '700',
+                                        padding: '2px 7px', borderRadius: '999px',
+                                        background: 'var(--primary)', color: 'white',
+                                      }}>개설자</span>
+                                    )}
                                   </div>
-                                  <button
-                                    className="btn btn-primary"
-                                    style={{ padding: '5px 12px', fontSize: '0.8rem', gap: '4px' }}
-                                    onClick={() => navigate(`/messages/${applicant.id}`)}
-                                  >
-                                    <MessageCircle size={13} /> 채팅
-                                  </button>
+                                  {!applicant.isAuthor && (
+                                    <button
+                                      className="btn btn-primary"
+                                      style={{ padding: '5px 12px', fontSize: '0.8rem', gap: '4px' }}
+                                      onClick={() => navigate(`/messages/${applicant.id}`)}
+                                    >
+                                      <MessageCircle size={13} /> 채팅
+                                    </button>
+                                  )}
                                 </div>
 
                                 {/* 매너 온도 + 실력 */}
