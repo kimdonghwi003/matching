@@ -133,13 +133,13 @@ export default function Home() {
       .select('id, nickname, manner_score')
       .in('id', ids);
 
-    // 해당 매칭 종목의 스포츠 프로필 (실력)
+    // 해당 매칭 종목의 스포츠 프로필 (실력·포지션)
     const sportType = matches.find(m => m.id === matchId)?.sport_type;
     let profiles = [];
     if (sportType) {
       const { data: profileData } = await supabase
-        .from('user_sports_profiles')
-        .select('user_id, skill_level, experience_years')
+        .from('sport_profiles')
+        .select('user_id, skill_level, position')
         .in('user_id', ids)
         .eq('sport_type', sportType);
       profiles = profileData || [];
@@ -148,7 +148,7 @@ export default function Home() {
     const merged = (usersData || []).map(u => ({
       ...u,
       skill_level: profiles.find(p => p.user_id === u.id)?.skill_level ?? null,
-      experience_years: profiles.find(p => p.user_id === u.id)?.experience_years ?? null,
+      position:    profiles.find(p => p.user_id === u.id)?.position    ?? null,
     }));
 
     setApplicants(prev => ({ ...prev, [matchId]: merged }));
@@ -476,7 +476,7 @@ export default function Home() {
                                     background: 'var(--primary-light)', color: 'var(--primary)',
                                   }}>
                                     ⚡ {applicant.skill_level ?? '실력 미등록'}
-                                    {applicant.experience_years > 0 && ` · ${applicant.experience_years}년`}
+                                    {applicant.position && ` · ${applicant.position}`}
                                   </span>
                                 </div>
                               </div>
