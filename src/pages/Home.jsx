@@ -106,6 +106,7 @@ export default function Home() {
   const fetchApplicants = async (matchId) => {
     if (applicants[matchId]) return;
     setLoadingApplicants(matchId);
+
     const { data: apps, error: appErr } = await supabase
       .from('match_applications')
       .select('applicant_id')
@@ -125,12 +126,32 @@ export default function Home() {
     }
 
     const ids = apps.map(a => a.applicant_id);
+
+    // 유저 기본 정보 + 매너 온도
     const { data: usersData } = await supabase
       .from('users')
-      .select('id, nickname')
+      .select('id, nickname, manner_score')
       .in('id', ids);
 
-    setApplicants(prev => ({ ...prev, [matchId]: usersData || [] }));
+    // 해당 매칭 종목의 스포츠 프로필 (실력)
+    const sportType = matches.find(m => m.id === matchId)?.sport_type;
+    let profiles = [];
+    if (sportType) {
+      const { data: profileData } = await supabase
+        .from('user_sports_profiles')
+        .select('user_id, skill_level, experience_years')
+        .in('user_id', ids)
+        .eq('sport_type', sportType);
+      profiles = profileData || [];
+    }
+
+    const merged = (usersData || []).map(u => ({
+      ...u,
+      skill_level: profiles.find(p => p.user_id === u.id)?.skill_level ?? null,
+      experience_years: profiles.find(p => p.user_id === u.id)?.experience_years ?? null,
+    }));
+
+    setApplicants(prev => ({ ...prev, [matchId]: merged }));
     setLoadingApplicants(null);
   };
 
@@ -414,25 +435,53 @@ export default function Home() {
                         ) : (applicants[match.id] || []).length === 0 ? (
                           <p className="text-muted" style={{ fontSize: '0.85rem', margin: 0 }}>아직 신청자가 없습니다.</p>
                         ) : (
-                          (applicants[match.id] || []).map(applicant => (
-                            <div key={applicant.id} style={{
-                              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                            }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <div className="chat-avatar" style={{ width: '28px', height: '28px', fontSize: '0.8rem' }}>
-                                  {applicant.nickname[0].toUpperCase()}
+                          (applicants[match.id] || []).map(applicant => {
+                            const score = applicant.manner_score ?? 36.5;
+                            const tempColor = score >= 38 ? '#ef4444' : score >= 36.5 ? '#22c55e' : '#3b82f6';
+                            return (
+                              <div key={applicant.id} style={{
+                                background: '#fff', border: '1px solid var(--border)',
+                                borderRadius: 'var(--radius-sm)', padding: '12px 14px',
+                                display: 'flex', flexDirection: 'column', gap: '8px',
+                              }}>
+                                {/* 닉네임 + 채팅 */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <div className="chat-avatar" style={{ width: '30px', height: '30px', fontSize: '0.85rem' }}>
+                                      {applicant.nickname[0].toUpperCase()}
+                                    </div>
+                                    <span style={{ fontWeight: '700', fontSize: '0.95rem' }}>{applicant.nickname}</span>
+                                  </div>
+                                  <button
+                                    className="btn btn-primary"
+                                    style={{ padding: '5px 12px', fontSize: '0.8rem', gap: '4px' }}
+                                    onClick={() => navigate(`/messages/${applicant.id}`)}
+                                  >
+                                    <MessageCircle size={13} /> 채팅
+                                  </button>
                                 </div>
-                                <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>{applicant.nickname}</span>
+
+                                {/* 매너 온도 + 실력 */}
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                  <span style={{
+                                    fontSize: '0.78rem', fontWeight: '700',
+                                    padding: '3px 9px', borderRadius: '999px',
+                                    background: tempColor + '20', color: tempColor, border: `1px solid ${tempColor}40`,
+                                  }}>
+                                    🌡️ {score.toFixed(1)}°C
+                                  </span>
+                                  <span style={{
+                                    fontSize: '0.78rem', fontWeight: '600',
+                                    padding: '3px 9px', borderRadius: '999px',
+                                    background: 'var(--primary-light)', color: 'var(--primary)',
+                                  }}>
+                                    ⚡ {applicant.skill_level ?? '실력 미등록'}
+                                    {applicant.experience_years > 0 && ` · ${applicant.experience_years}년`}
+                                  </span>
+                                </div>
                               </div>
-                              <button
-                                className="btn btn-primary"
-                                style={{ padding: '6px 14px', fontSize: '0.82rem' }}
-                                onClick={() => navigate(`/messages/${applicant.id}`)}
-                              >
-                                <MessageCircle size={14} /> 채팅
-                              </button>
-                            </div>
-                          ))
+                            );
+                          })
                         )}
                       </div>
                     )}
