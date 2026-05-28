@@ -22,7 +22,7 @@ export default function CreateMatch() {
     matchDate: '',
     location: '',
     skill: '입문 (누구나)',
-    maxPlayers: 6,
+    maxPlayers: '6',
     description: '',
   });
   const [loading, setLoading] = useState(false);
@@ -42,7 +42,9 @@ export default function CreateMatch() {
 
     if (!form.title.trim()) { setError('제목을 입력해주세요.'); return; }
     if (!form.location.trim()) { setError('장소를 입력해주세요.'); return; }
-    if (form.maxPlayers < 2) { setError('모집 인원은 2명 이상이어야 합니다.'); return; }
+    const maxPlayersNum = parseInt(form.maxPlayers);
+    if (isNaN(maxPlayersNum) || maxPlayersNum < 2) { setError('모집 인원은 2명 이상이어야 합니다.'); return; }
+    if (maxPlayersNum > 30) { setError('모집 인원은 최대 30명입니다.'); return; }
 
     setLoading(true);
     const { error: err } = await supabase.from('matches').insert({
@@ -53,7 +55,7 @@ export default function CreateMatch() {
       match_date: form.matchDate || null,
       location: form.location.trim(),
       skill_level_required: form.skill,
-      max_players: form.maxPlayers,
+      max_players: maxPlayersNum,
       description: form.description.trim(),
       status: 'OPEN',
     });
@@ -142,13 +144,22 @@ export default function CreateMatch() {
             min={2} max={30}
             value={form.maxPlayers}
             required
-            onChange={(e) =>
-              setForm({ ...form, maxPlayers: Math.max(2, Math.min(30, parseInt(e.target.value) || 2)) })
-            }
+            onChange={(e) => setForm({ ...form, maxPlayers: e.target.value })}
+            onBlur={(e) => {
+              const val = parseInt(e.target.value);
+              if (isNaN(val) || val < 2) setForm((p) => ({ ...p, maxPlayers: '2' }));
+              else if (val > 30) setForm((p) => ({ ...p, maxPlayers: '30' }));
+              else setForm((p) => ({ ...p, maxPlayers: String(val) }));
+            }}
           />
-          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '5px', lineHeight: '1.4' }}>
-            주전 {form.maxPlayers}명 + 예비 {RESERVE_SLOTS}명 = 총 {form.maxPlayers + RESERVE_SLOTS}명까지 신청 가능합니다.
-          </p>
+          {(() => {
+            const n = parseInt(form.maxPlayers) || 0;
+            return n >= 2 ? (
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '5px', lineHeight: '1.4' }}>
+                주전 {n}명 + 예비 {RESERVE_SLOTS}명 = 총 {n + RESERVE_SLOTS}명까지 신청 가능합니다.
+              </p>
+            ) : null;
+          })()}
         </div>
 
         <div className="form-group">
