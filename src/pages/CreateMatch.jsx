@@ -14,12 +14,15 @@ export default function CreateMatch() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const RESERVE_SLOTS = 2;
+
   const [form, setForm] = useState({
     sport: 'futsal',
     title: '',
     matchDate: '',
     location: '',
     skill: '입문 (누구나)',
+    maxPlayers: 6,
     description: '',
   });
   const [loading, setLoading] = useState(false);
@@ -39,6 +42,7 @@ export default function CreateMatch() {
 
     if (!form.title.trim()) { setError('제목을 입력해주세요.'); return; }
     if (!form.location.trim()) { setError('장소를 입력해주세요.'); return; }
+    if (form.maxPlayers < 2) { setError('모집 인원은 2명 이상이어야 합니다.'); return; }
 
     setLoading(true);
     const { error: err } = await supabase.from('matches').insert({
@@ -49,6 +53,7 @@ export default function CreateMatch() {
       match_date: form.matchDate || null,
       location: form.location.trim(),
       skill_level_required: form.skill,
+      max_players: form.maxPlayers,
       description: form.description.trim(),
       status: 'OPEN',
     });
@@ -127,6 +132,23 @@ export default function CreateMatch() {
               <option key={opt} value={opt}>{opt}</option>
             ))}
           </select>
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">주전 모집 인원 <span style={{ color: 'var(--danger)' }}>*</span></label>
+          <input
+            type="number"
+            className="input-field"
+            min={2} max={30}
+            value={form.maxPlayers}
+            required
+            onChange={(e) =>
+              setForm({ ...form, maxPlayers: Math.max(2, Math.min(30, parseInt(e.target.value) || 2)) })
+            }
+          />
+          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '5px', lineHeight: '1.4' }}>
+            주전 {form.maxPlayers}명 + 예비 {RESERVE_SLOTS}명 = 총 {form.maxPlayers + RESERVE_SLOTS}명까지 신청 가능합니다.
+          </p>
         </div>
 
         <div className="form-group">

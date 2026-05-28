@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Calendar, Users, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
+
+const RESERVE_SLOTS = 2;
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -250,6 +252,14 @@ export default function Home() {
             const isDeleting  = deletingId === match.id;
 
             const applyCount = applyCounts[match.id] || 0;
+            const maxPlayers = match.max_players || 0;
+            const totalSlots = maxPlayers + RESERVE_SLOTS;
+            const mainCount = maxPlayers > 0 ? Math.min(applyCount, maxPlayers) : applyCount;
+            const reserveCount = maxPlayers > 0 ? Math.max(0, applyCount - maxPlayers) : 0;
+            const mainPct = maxPlayers > 0 ? (mainCount / totalSlots) * 100 : 0;
+            const reservePct = maxPlayers > 0 ? (reserveCount / totalSlots) * 100 : 0;
+            const dividerPct = maxPlayers > 0 ? (maxPlayers / totalSlots) * 100 : 0;
+            const isFull = maxPlayers > 0 && applyCount >= maxPlayers;
 
             return (
               <div key={match.id} className="card" style={{ padding: '20px' }}>
@@ -259,14 +269,25 @@ export default function Home() {
                     {SPORT_LABEL[match.sport_type] || match.sport_type}
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{
-                      fontSize: '0.75rem', fontWeight: '700',
-                      padding: '2px 9px', borderRadius: '999px',
-                      background: applyCount > 0 ? 'var(--primary)' : 'var(--border)',
-                      color: applyCount > 0 ? 'white' : 'var(--text-muted)',
-                    }}>
-                      👥 {applyCount}명 신청
-                    </span>
+                    {maxPlayers > 0 ? (
+                      <span style={{
+                        fontSize: '0.75rem', fontWeight: '700',
+                        padding: '2px 9px', borderRadius: '999px',
+                        background: reserveCount > 0 ? 'var(--danger)' : isFull ? '#f59e0b' : 'var(--primary)',
+                        color: 'white',
+                      }}>
+                        {reserveCount > 0 ? `마감 · 예비 ${reserveCount}/${RESERVE_SLOTS}` : `👥 ${mainCount}/${maxPlayers}`}
+                      </span>
+                    ) : (
+                      <span style={{
+                        fontSize: '0.75rem', fontWeight: '700',
+                        padding: '2px 9px', borderRadius: '999px',
+                        background: applyCount > 0 ? 'var(--primary)' : 'var(--border)',
+                        color: applyCount > 0 ? 'white' : 'var(--text-muted)',
+                      }}>
+                        👥 {applyCount}명 신청
+                      </span>
+                    )}
                     <span className="text-muted" style={{ fontSize: '0.85rem' }}>{authorNick}</span>
                   </div>
                 </div>
@@ -289,6 +310,45 @@ export default function Home() {
                     <div className="flex items-center gap-2"><Users size={15} /> 실력: {match.skill_level_required}</div>
                   )}
                 </div>
+
+                {/* 주전 / 예비 모집 현황 */}
+                {maxPlayers > 0 && (
+                  <div style={{ marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '5px' }}>
+                      <span style={{ fontWeight: '600', color: isFull ? '#f59e0b' : 'var(--text-secondary)' }}>
+                        주전 {mainCount}/{maxPlayers}명{isFull ? ' · 마감' : ''}
+                      </span>
+                      <span style={{ fontWeight: '600', color: reserveCount > 0 ? 'var(--danger)' : 'var(--text-muted)' }}>
+                        예비 {reserveCount}/{RESERVE_SLOTS}명
+                      </span>
+                    </div>
+                    <div style={{ height: '7px', borderRadius: '999px', background: 'var(--border)', position: 'relative', overflow: 'hidden' }}>
+                      {/* 주전 채움 */}
+                      <div style={{
+                        position: 'absolute', left: 0, top: 0, height: '100%',
+                        width: `${mainPct}%`,
+                        background: isFull ? '#f59e0b' : 'var(--primary)',
+                        transition: 'width 0.3s ease',
+                      }} />
+                      {/* 예비 채움 */}
+                      {reserveCount > 0 && (
+                        <div style={{
+                          position: 'absolute', top: 0, height: '100%',
+                          left: `${dividerPct}%`,
+                          width: `${reservePct}%`,
+                          background: 'var(--danger)',
+                          transition: 'width 0.3s ease',
+                        }} />
+                      )}
+                      {/* 주전/예비 경계선 */}
+                      <div style={{
+                        position: 'absolute', top: 0, height: '100%',
+                        left: `${dividerPct}%`, width: '2px',
+                        background: 'white', opacity: 0.7,
+                      }} />
+                    </div>
+                  </div>
+                )}
 
                 {/* 버튼 영역 */}
                 {isAuthor ? (

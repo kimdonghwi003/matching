@@ -39,6 +39,7 @@ CREATE TABLE public.matches (
     match_date TIMESTAMP WITH TIME ZONE, -- 실제 경기 일시
     location VARCHAR(255), -- 장소 (예: 충북대 대운동장, 농구장 등)
     skill_level_required VARCHAR(50), -- 요구 실력 수준
+    max_players INT DEFAULT 0,         -- 주전 모집 인원 (0 = 미설정)
     status VARCHAR(50) DEFAULT 'OPEN', -- 모집 상태 (OPEN, CLOSED, COMPLETED)
     title VARCHAR(255) NOT NULL, -- 모집글 제목
     description TEXT, -- 상세 본문 내용
@@ -106,5 +107,10 @@ CREATE TRIGGER update_matches_modtime
 -- ON public.users FOR SELECT USING (true);
 
 -- (예시) 사용자는 자기 자신의 데이터만 수정할 수 있습니다.
--- CREATE POLICY "Users can update own profile." 
+-- CREATE POLICY "Users can update own profile."
 -- ON public.users FOR UPDATE USING (auth.uid() = id);
+
+-- ==============================================================================
+-- [마이그레이션] 기존 DB에 max_players 컬럼 추가 (Supabase SQL Editor에서 실행)
+-- ==============================================================================
+-- ALTER TABLE public.matches ADD COLUMN IF NOT EXISTS max_players INT DEFAULT 0;
