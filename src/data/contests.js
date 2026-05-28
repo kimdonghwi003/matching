@@ -1,5 +1,5 @@
-// 충청북도·충청남도 및 전국 대학생 대상 공모전 데이터
-// 출처: 공모전코리아, 위비티, 충북창업스타티움, 충청남도 공식 홈페이지 등
+// 충청북도·충청남도·대전광역시·세종특별자치시 및 전국 대학생 대상 공모전 데이터
+// 출처: 공모전코리아, 위비티, 충북창업스타티움, 대전창조경제혁신센터, 세종창조경제혁신센터 등
 export const CONTESTS = [
   {
     id: 1,
@@ -137,6 +137,163 @@ export const CONTESTS = [
     isActive: true,
     source: "https://www.contestindex.co.kr/index/31849",
   },
+
+  // ── 대전광역시 ──────────────────────────────────────────────────────────
+  {
+    id: 9,
+    title: "2026 대전 스마트시티 챌린지",
+    category: "startup",
+    categoryLabel: "창업·IT",
+    region: "대전",
+    organizer: "대전광역시 / 대전테크노파크",
+    description:
+      "대전광역시의 스마트시티 구현을 위한 ICT·AI·빅데이터 기반 아이디어 및 솔루션을 발굴하는 경진대회. 대학생부터 스타트업까지 참여 가능. 우수 팀에게는 PoC 지원금과 실증 기회 제공.",
+    deadline: "2026-07-31",
+    startDate: "2026-06-01",
+    reward: "대상 1,000만원 · 최우수상 500만원 · 우수상 각 300만원",
+    maxTeamSize: 5,
+    suggestedRoles: ["개발자", "기획자", "데이터 분석가", "디자이너", "마케터"],
+    isActive: true,
+    source: "https://www.dtdc.or.kr/",
+  },
+  {
+    id: 10,
+    title: "2026 대전창조경제혁신센터 스타트업 그라운드",
+    category: "startup",
+    categoryLabel: "창업·IT",
+    region: "대전",
+    organizer: "대전창조경제혁신센터",
+    description:
+      "대전·세종·충남 지역 예비창업자 및 초기 스타트업을 대상으로 혁신적인 사업 아이디어를 발굴·육성하는 경진대회. 멘토링, 투자 연계, 입주 지원 혜택 포함.",
+    deadline: "2026-08-15",
+    startDate: "2026-06-15",
+    reward: "대상 2,000만원 · 최우수상 각 1,000만원 · 우수상 각 500만원",
+    maxTeamSize: 5,
+    suggestedRoles: ["팀장·기획", "개발자", "마케터", "데이터 분석가"],
+    isActive: true,
+    source: "https://ccei.creativekorea.or.kr/daejeon/",
+  },
+  {
+    id: 11,
+    title: "2026 대전광역시 관광 SNS 콘텐츠 공모전",
+    category: "media",
+    categoryLabel: "콘텐츠·SNS",
+    region: "대전",
+    organizer: "대전광역시",
+    description:
+      "대전의 문화·관광·음식·과학 명소를 SNS 콘텐츠(숏폼 영상, 릴스, 유튜브 등)로 소개하는 공모전. 개인 또는 2인 팀 참가 가능. 최우수 콘텐츠는 대전시 공식 채널에 게시.",
+    deadline: "2026-09-30",
+    startDate: "2026-07-01",
+    reward: "대상 200만원 · 최우수상 100만원 · 우수상 각 50만원",
+    maxTeamSize: 2,
+    suggestedRoles: ["영상 제작", "글쓰기·편집", "촬영"],
+    isActive: true,
+    source: "https://www.daejeon.go.kr/",
+  },
+  {
+    id: 12,
+    title: "2026 ETRI 과학기술 아이디어 공모전",
+    category: "idea",
+    categoryLabel: "아이디어·기술",
+    region: "대전",
+    organizer: "한국전자통신연구원(ETRI)",
+    description:
+      "AI, 6G, 사이버보안, 양자컴퓨팅 등 미래 과학기술 분야에서 사회 문제를 해결하는 창의적 아이디어를 공모. 이공계 대학생 및 대학원생 참가 권장. 우수 아이디어는 ETRI 연구팀과 협업 기회 제공.",
+    deadline: "2026-10-15",
+    startDate: "2026-08-01",
+    reward: "대상 300만원 · 최우수상 150만원 · 우수상 각 50만원",
+    maxTeamSize: 4,
+    suggestedRoles: ["개발자", "기획자", "데이터 분석가", "바이오·생명공학"],
+    isActive: true,
+    source: "https://www.etri.re.kr/",
+  },
+  {
+    id: 13,
+    title: "2026 대전 대학생 사회혁신 챌린지",
+    category: "idea",
+    categoryLabel: "아이디어·사회혁신",
+    region: "대전",
+    organizer: "대전광역시 / 대전사회혁신센터",
+    description:
+      "지역 사회 문제(청년, 환경, 복지, 도시재생 등)를 해결하는 사회혁신 아이디어를 발굴하는 공모전. 대전·세종·충청권 대학교 재학생 팀 대상. 사업계획서 제출 후 발표 심사.",
+    deadline: "2026-08-31",
+    startDate: "2026-07-01",
+    reward: "대상 500만원 · 최우수상 300만원 · 우수상 각 100만원",
+    maxTeamSize: 4,
+    suggestedRoles: ["기획자", "마케터", "디자이너", "글쓰기·편집"],
+    isActive: true,
+    source: "https://www.contestkorea.com/sub/list.php?int_gbn=1&Txt_bcode=031370003",
+  },
+
+  // ── 세종특별자치시 ─────────────────────────────────────────────────────
+  {
+    id: 14,
+    title: "2026 세종 청년 스타트업 경진대회",
+    category: "startup",
+    categoryLabel: "창업·IT",
+    region: "세종",
+    organizer: "세종특별자치시 / 세종창조경제혁신센터",
+    description:
+      "세종시의 미래 산업(자율주행, 스마트행정, 에듀테크 등)과 연계한 혁신 스타트업 아이디어를 발굴하는 경진대회. 세종·대전·충청권 청년(만 39세 이하) 팀 참가 가능. 입상 팀 창업 공간 및 사업화 자금 지원.",
+    deadline: "2026-07-31",
+    startDate: "2026-06-01",
+    reward: "대상 1,000만원 · 최우수상 500만원 · 우수상 각 200만원",
+    maxTeamSize: 5,
+    suggestedRoles: ["팀장·기획", "개발자", "마케터", "디자이너"],
+    isActive: true,
+    source: "https://ccei.creativekorea.or.kr/sejong/",
+  },
+  {
+    id: 15,
+    title: "2026 세종시 행정혁신 아이디어 공모전",
+    category: "idea",
+    categoryLabel: "아이디어·행정",
+    region: "세종",
+    organizer: "세종특별자치시",
+    description:
+      "행정 서비스 개선, 스마트 행정 구현, 시민 참여 활성화를 위한 창의적 정책 아이디어를 공모. 대학생 포함 대한민국 국민 누구나 참가 가능. 채택 아이디어는 세종시 정책에 반영될 수 있음.",
+    deadline: "2026-09-30",
+    startDate: "2026-07-15",
+    reward: "최우수상 200만원 · 우수상 100만원 · 장려상 각 50만원",
+    maxTeamSize: 3,
+    suggestedRoles: ["기획자", "글쓰기·편집", "디자이너"],
+    isActive: true,
+    source: "https://www.sejong.go.kr/",
+  },
+  {
+    id: 16,
+    title: "2026 세종 자율주행·미래모빌리티 아이디어 공모전",
+    category: "startup",
+    categoryLabel: "창업·IT",
+    region: "세종",
+    organizer: "국토교통부 / 세종특별자치시",
+    description:
+      "국내 자율주행 실증도시 세종에서 개최하는 미래모빌리티 아이디어 공모전. 자율주행, 전동킥보드·전기차 서비스, UAM(도심항공모빌리티) 등 혁신 아이디어 모집. 이공계·경영계 혼성 팀 환영.",
+    deadline: "2026-10-31",
+    startDate: "2026-08-15",
+    reward: "대상 500만원 · 최우수상 300만원 · 우수상 각 150만원",
+    maxTeamSize: 5,
+    suggestedRoles: ["개발자", "기획자", "데이터 분석가", "마케터"],
+    isActive: true,
+    source: "https://www.sejong.go.kr/",
+  },
+  {
+    id: 17,
+    title: "2026 세종 도시재생 디자인 공모전",
+    category: "art",
+    categoryLabel: "예술·디자인",
+    region: "세종",
+    organizer: "세종특별자치시 / 한국토지주택공사(LH)",
+    description:
+      "세종시 구도심 및 생활권 공공공간을 대상으로 한 도시재생 및 공공디자인 공모전. 건축·도시·환경디자인 전공 학생 및 일반인 팀 참가 가능. 우수안은 세종시 실제 공간에 반영 검토.",
+    deadline: "2026-11-15",
+    startDate: "2026-09-01",
+    reward: "대상 300만원 · 최우수상 150만원 · 우수상 각 70만원",
+    maxTeamSize: 4,
+    suggestedRoles: ["디자이너", "기획·연출", "글쓰기·편집"],
+    isActive: true,
+    source: "https://www.lh.or.kr/",
+  },
 ];
 
 export const CATEGORY_LABELS = {
@@ -151,6 +308,8 @@ export const REGION_LABELS = {
   all: "전체 지역",
   충북: "충청북도",
   충남: "충청남도",
+  대전: "대전광역시",
+  세종: "세종특별자치시",
 };
 
 export const ROLE_OPTIONS = [

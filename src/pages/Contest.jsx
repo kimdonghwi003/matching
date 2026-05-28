@@ -5,6 +5,16 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { CONTESTS, CATEGORY_LABELS, REGION_LABELS, ROLE_OPTIONS } from '../data/contests';
 
+const REGION_DISPLAY = { 충북: '충청북도', 충남: '충청남도', 대전: '대전광역시', 세종: '세종특별자치시' };
+
+const REGION_TABS = [
+  { key: 'all',  label: '전체',      emoji: '🗺️' },
+  { key: '충북', label: '충청북도',   emoji: '🌿' },
+  { key: '충남', label: '충청남도',   emoji: '🌊' },
+  { key: '대전', label: '대전광역시', emoji: '🔬' },
+  { key: '세종', label: '세종특별자치시', emoji: '🏛️' },
+];
+
 export default function Contest() {
   const [filterRegion, setFilterRegion] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
@@ -123,6 +133,12 @@ export default function Contest() {
     }));
   };
 
+  const handleRegionTab = (key) => {
+    setFilterRegion(key);
+    setExpandedId(null);
+    setShowCreateForm(null);
+  };
+
   const filteredContests = CONTESTS.filter((c) => {
     if (filterRegion !== 'all' && c.region !== filterRegion) return false;
     if (filterCategory !== 'all' && c.category !== filterCategory) return false;
@@ -159,38 +175,73 @@ export default function Contest() {
         }}>
           <h2 style={{ margin: 0, color: 'white', fontSize: '1.4rem' }}>🏆 공모전 팀원 매칭</h2>
           <p style={{ margin: '6px 0 0', opacity: 0.9, fontSize: '0.88rem' }}>
-            충청북도·충청남도 공모전에 함께할 팀원을 찾아보세요!
+            충청·대전·세종 공모전에 함께할 팀원을 찾아보세요!
           </p>
         </div>
       </div>
 
-      {/* 지역 필터 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-        <div className="flex gap-2" style={{ overflowX: 'auto', paddingBottom: '4px' }}>
-          {Object.entries(REGION_LABELS).map(([key, label]) => (
+      {/* 지역 탭 */}
+      <div style={{
+        display: 'flex', overflowX: 'auto',
+        borderBottom: '2px solid var(--border)',
+        marginBottom: '12px',
+        scrollbarWidth: 'none',
+      }}>
+        {REGION_TABS.map(({ key, label, emoji }) => {
+          const count = key === 'all' ? CONTESTS.length : CONTESTS.filter((c) => c.region === key).length;
+          const isActive = filterRegion === key;
+          return (
             <button
               key={key}
-              className={`btn ${filterRegion === key ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ padding: '6px 14px', fontSize: '0.85rem', whiteSpace: 'nowrap' }}
-              onClick={() => setFilterRegion(key)}
+              onClick={() => handleRegionTab(key)}
+              style={{
+                flexShrink: 0,
+                padding: '10px 16px',
+                fontSize: '0.85rem',
+                fontWeight: isActive ? '700' : '500',
+                color: isActive ? 'var(--primary)' : 'var(--text-muted)',
+                background: 'none',
+                border: 'none',
+                borderBottom: isActive ? '2px solid var(--primary)' : '2px solid transparent',
+                marginBottom: '-2px',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                transition: 'color 0.15s',
+              }}
             >
-              {label}
+              <span>{emoji}</span>
+              <span>{label}</span>
+              <span style={{
+                fontSize: '0.72rem',
+                fontWeight: '600',
+                padding: '1px 6px',
+                borderRadius: '999px',
+                background: isActive ? 'var(--primary)' : 'var(--border)',
+                color: isActive ? 'white' : 'var(--text-muted)',
+                marginLeft: '2px',
+              }}>
+                {count}
+              </span>
             </button>
-          ))}
-        </div>
-        {/* 분야 필터 */}
-        <div className="flex gap-2" style={{ overflowX: 'auto', paddingBottom: '4px' }}>
-          {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-            <button
-              key={key}
-              className={`btn ${filterCategory === key ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ padding: '6px 14px', fontSize: '0.85rem', whiteSpace: 'nowrap' }}
-              onClick={() => setFilterCategory(key)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+          );
+        })}
+      </div>
+
+      {/* 분야 필터 칩 */}
+      <div className="flex gap-2" style={{ overflowX: 'auto', paddingBottom: '4px', marginBottom: '16px', scrollbarWidth: 'none' }}>
+        {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+          <button
+            key={key}
+            className={`btn ${filterCategory === key ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ padding: '5px 12px', fontSize: '0.82rem', whiteSpace: 'nowrap', flexShrink: 0 }}
+            onClick={() => setFilterCategory(key)}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       <div className="flex-col gap-3">
@@ -216,7 +267,7 @@ export default function Contest() {
                     background: 'var(--primary-light)', color: 'var(--primary)',
                     padding: '2px 10px', borderRadius: '999px', fontSize: '0.75rem', fontWeight: '600',
                   }}>
-                    {contest.region === '충북' ? '충청북도' : '충청남도'}
+                    {REGION_DISPLAY[contest.region] ?? contest.region}
                   </span>
                 </div>
                 <span style={{
