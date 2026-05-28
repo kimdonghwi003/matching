@@ -111,6 +111,11 @@ CREATE TRIGGER update_matches_modtime
 -- ON public.users FOR UPDATE USING (auth.uid() = id);
 
 -- ==============================================================================
--- [마이그레이션] 기존 DB에 max_players 컬럼 추가 (Supabase SQL Editor에서 실행)
+-- [마이그레이션] Supabase SQL Editor에서 순서대로 실행
 -- ==============================================================================
+
+-- 1) max_players 컬럼 추가 (최초 1회)
 -- ALTER TABLE public.matches ADD COLUMN IF NOT EXISTS max_players INT DEFAULT 0;
+
+-- 2) 기존에 올라온 모든 스포츠 모집 글의 max_players를 10명으로 일괄 설정
+-- UPDATE public.matches SET max_players = 10 WHERE max_players = 0 OR max_players IS NULL;

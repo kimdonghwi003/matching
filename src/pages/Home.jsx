@@ -290,7 +290,36 @@ export default function Home() {
                 </div>
 
                 {/* 제목 */}
-                <h3 className="mb-2" style={{ fontSize: '1.15rem', marginTop: '8px' }}>{match.title}</h3>
+                <h3 style={{ fontSize: '1.15rem', marginTop: '8px', marginBottom: '10px' }}>{match.title}</h3>
+
+                {/* 모집 인원 강조 블록 */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '10px 14px', borderRadius: 'var(--radius-sm)', marginBottom: '12px',
+                  background: '#fff0f3', border: '1.5px solid #ffc9d4',
+                }}>
+                  <span style={{ fontSize: '0.82rem', fontWeight: '600', color: 'var(--danger)' }}>
+                    🔴 모집 현황
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                    <span style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--danger)', letterSpacing: '-0.5px' }}>
+                      {applyCount}
+                    </span>
+                    <span style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--danger)' }}>
+                      / {maxPlayers > 0 ? maxPlayers : '?'}명
+                    </span>
+                    {maxPlayers > 0 && (
+                      <span style={{
+                        fontSize: '0.72rem', fontWeight: '700', marginLeft: '6px',
+                        padding: '2px 7px', borderRadius: '999px',
+                        background: reserveCount > 0 ? 'var(--danger)' : isFull ? '#f59e0b' : 'var(--primary)',
+                        color: 'white',
+                      }}>
+                        {reserveCount > 0 ? `예비 ${reserveCount}/${RESERVE_SLOTS}` : isFull ? '주전 마감' : '모집 중'}
+                      </span>
+                    )}
+                  </div>
+                </div>
 
                 {/* 정보 */}
                 <div className="flex-col gap-2 mb-3" style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
