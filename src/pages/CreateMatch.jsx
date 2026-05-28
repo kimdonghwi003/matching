@@ -47,7 +47,8 @@ export default function CreateMatch() {
     if (maxPlayersNum > 30) { setError('모집 인원은 최대 30명입니다.'); return; }
 
     setLoading(true);
-    const { error: err } = await supabase.from('matches').insert({
+
+    const insertData = {
       author_id: user.id,
       sport_type: form.sport,
       match_type: 'team_member',
@@ -58,7 +59,20 @@ export default function CreateMatch() {
       max_players: maxPlayersNum,
       description: form.description.trim(),
       status: 'OPEN',
-    });
+    };
+
+    let { error: err } = await supabase.from('matches').insert(insertData);
+
+    // max_players 컬럼이 DB에 아직 없으면 해당 필드 제외 후 재시도
+    if (err?.message?.includes('max_players')) {
+      const { max_players, ...fallback } = insertData;
+      const res = await supabase.from('matches').insert(fallback);
+      err = res.error;
+      if (!res.error) {
+        setError('⚠️ 모집 인원이 저장되지 않았습니다. Supabase SQL Editor에서 아래 SQL을 실행해주세요:\nALTER TABLE public.matches ADD COLUMN IF NOT EXISTS max_players INT DEFAULT 0;');
+      }
+    }
+
     setLoading(false);
 
     if (err) {
